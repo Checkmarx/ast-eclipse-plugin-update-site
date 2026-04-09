@@ -1,7 +1,6 @@
 name: Auto_PR_Mered
 on: 
   pull_request:
-
 permissions:
   contents: write
 
