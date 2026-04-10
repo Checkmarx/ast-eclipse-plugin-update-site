@@ -1,0 +1,35 @@
+name: Jira ID Validation in GH PRs or Branch Names
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    branches: [main, master]
+
+concurrency:
+  group: jira-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate-jira-id:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: CheckmarxDev/Repository-Rules
+          token: ${{ secrets.GH_TOKEN }}
+          ref: AST-137615 # branch to test
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Validate Jira ID
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BRANCH_NAME: ${{ github.head_ref }}
+          JIRA_USER: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_CX_TOKEN }}
+          BACKDOOR_KEYWORD: ${{ secrets.BACKDOOR_KEYWORD }}
+        run: python scripts/jira_id_validation.py
